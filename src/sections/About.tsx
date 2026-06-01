@@ -9,16 +9,11 @@ const About = () => {
       </h2>
 
       <p className="mt-8 text-center text-gray-400 text-lg">
-        Automotive Software Engineer with expertise in
-        Embedded Systems, CANoe, VectorCAST,
-        Requirement Testing and Python Automation.
+        I'm Harish Devireddy, 3.5+ years exeperience Automotive Embedded Software Testing Engineer passionate about building reliable, high-quality software systems and intelligent automation solutions. With experience in Clusters, HUD, Displays, Data Connectivity Units (DCU), Amplifiers, Acoustic Sound Design, and Acoustic Vehicle Alerting Systems (AVAS), I contribute to developing robust automotive software solutions.
       </p>
 
       <p className="mt-8 text-center text-gray-400 text-lg">
-        3.5+ Years Experience
-        3rd Prize - Mobis Hackathon 2024
-        Stellar Award Winner
-        Automotive Testing Specialist
+        I thrive on solving complex engineering challenges, improving software reliability, and transforming manual processes into efficient automated workflows through Embedded Systems expertise, software validation, debugging, and Python automation.
       </p>
     </section>
   );
