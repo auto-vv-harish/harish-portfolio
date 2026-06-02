@@ -6,6 +6,8 @@ import Projects from "./sections/Projects";
 import Achievements from "./sections/Achievements";
 import Contact from "./sections/Contact";
 import Footer from "./components/Footer";
+import Songs from "./components/Songs";
+
 function App() {
   return (
     <div className="bg-[#0B1120] text-white">
@@ -21,6 +23,8 @@ function App() {
       <Projects />
 
       <Achievements />
+
+      <Songs />
 
       <Contact />
 
