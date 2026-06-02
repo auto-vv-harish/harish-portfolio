@@ -1,12 +1,21 @@
-import { useState } from "react";
 import { TypeAnimation } from "react-type-animation";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import profilePic from "../assets/profile.jpeg";
-
+import { useState, useEffect } from "react";
+import { incrementAndGetViews } from "../lib/viewCounter";
 
 const Hero = () => {
   const [showAbout, setShowAbout] = useState(false);
+ const [viewCount, setViewCount] = useState(0);
 
+  useEffect(() => {
+    const loadViews = async () => {
+      const count = await incrementAndGetViews();
+      setViewCount(count);
+    };
+
+    loadViews();
+  }, []);
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
       {/* Background Glow Effects */}
@@ -48,6 +57,10 @@ const Hero = () => {
           Passionate Automotive Engineer specializing in Embedded Systems,
           CANoe, VectorCAST, Requirement Testing and Python Automation.
         </p>
+       
+       <p className="mt-4 text-cyan-400 text-lg font-semibold">
+  👀 Portfolio Views: {viewCount}
+      </p>
 
         {/* Buttons */}
         <div className="flex justify-center gap-4 mt-8 flex-wrap">
