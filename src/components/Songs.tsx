@@ -9,7 +9,7 @@ const Songs = () => {
       </h2>
 
       <p className="text-center text-gray-400 mt-4">
-        Beyond engineering, I enjoy writing original songs and lyrics using AI.
+        Beyond engineering, I enjoy writing original songs and lyrics.
       </p>
 
       <div className="max-w-xl mx-auto mt-12">
