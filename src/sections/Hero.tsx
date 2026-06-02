@@ -60,7 +60,7 @@ useEffect(() => {
         </p>
        
        <p className="mt-4 text-cyan-400 text-lg font-semibold">
-  👀 Portfolio Views: {viewCount}
+  👀 Unique Portfolio Users: {viewCount}
       </p>
 
         {/* Buttons */}
