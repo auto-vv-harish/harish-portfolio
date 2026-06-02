@@ -2,20 +2,21 @@ import { TypeAnimation } from "react-type-animation";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import profilePic from "../assets/profile.jpeg";
 import { useState, useEffect } from "react";
-import { incrementAndGetViews } from "../lib/viewCounter";
+import { trackVisitor } from "../lib/viewCounter";
 
 const Hero = () => {
   const [showAbout, setShowAbout] = useState(false);
  const [viewCount, setViewCount] = useState(0);
 
-  useEffect(() => {
-    const loadViews = async () => {
-      const count = await incrementAndGetViews();
-      setViewCount(count);
-    };
+useEffect(() => {
+  const loadViews = async () => {
+    const count = await trackVisitor();
+    setViewCount(count);
+  };
 
-    loadViews();
-  }, []);
+  loadViews();
+}, []);
+  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
       {/* Background Glow Effects */}

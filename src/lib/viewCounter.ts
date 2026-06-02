@@ -1,18 +1,30 @@
 import { supabase } from "./supabase";
 
-export const incrementAndGetViews = async () => {
-  const { data } = await supabase
-    .from("portfolio_views")
-    .select("count")
-    .eq("id", 1)
-    .single();
+export const trackVisitor = async () => {
+  let visitorId = localStorage.getItem("visitor_id");
 
-  const currentCount = data?.count || 0;
+  if (!visitorId) {
+    visitorId = crypto.randomUUID();
 
-  await supabase
-    .from("portfolio_views")
-    .update({ count: currentCount + 1 })
-    .eq("id", 1);
+    const { data, error } = await supabase
+      .from("portfolio_visitors")
+      .insert([{ visitor_id: visitorId }]);
 
-  return currentCount + 1;
+    console.log("Visitor ID:", visitorId);
+    console.log("Insert Data:", data);
+    console.log("Insert Error:", error);
+
+    if (!error) {
+      localStorage.setItem("visitor_id", visitorId);
+    }
+  }
+
+  const { count, error } = await supabase
+    .from("portfolio_visitors")
+    .select("*", { count: "exact", head: true });
+
+  console.log("Count:", count);
+  console.log("Count Error:", error);
+
+  return count || 0;
 };
