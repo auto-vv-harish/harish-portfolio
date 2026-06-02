@@ -3,10 +3,30 @@ import { FaLinkedin, FaGithub } from "react-icons/fa";
 import profilePic from "../assets/profile.jpeg";
 import { useState, useEffect } from "react";
 import { trackVisitor } from "../lib/viewCounter";
+import AdminLogin from "./AdminLogin";
+import AdminPanel from "../components/AdminPanel";
 
 const Hero = () => {
   const [showAbout, setShowAbout] = useState(false);
  const [viewCount, setViewCount] = useState(0);
+
+const [tapCount, setTapCount] = useState(0);
+const [showLogin, setShowLogin] = useState(false);
+
+const [isAdmin, setIsAdmin] = useState(
+  localStorage.getItem("isAdmin") === "true"
+);
+
+const handleSecretTap = () => {
+  const newCount = tapCount + 1;
+
+  if (newCount >= 5) {
+    setShowLogin(true);
+    setTapCount(0);
+  } else {
+    setTapCount(newCount);
+  }
+};
 
 useEffect(() => {
   const loadViews = async () => {
@@ -25,11 +45,12 @@ useEffect(() => {
 
       <div className="relative z-10 text-center">
 
-        <img
-          src={profilePic}
-          alt="Harish Devireddy"
-          className="w-48 h-48 rounded-full mx-auto border-4 border-cyan-400 object-cover mb-6"
-        />
+      <img
+  src={profilePic}
+  alt="Harish Devireddy"
+  onClick={handleSecretTap}
+  className="w-48 h-48 rounded-full mx-auto border-4 border-cyan-400 object-cover mb-6 cursor-pointer"
+/>
 
         <h1 className="text-6xl md:text-8xl font-bold">
           Harish
@@ -159,6 +180,12 @@ useEffect(() => {
         </div>
 
       </div>
+      {showLogin && (
+  <AdminLogin
+    onClose={() => setShowLogin(false)}
+  />
+)}
+{isAdmin && <AdminPanel />}
     </section>
   );
 };
