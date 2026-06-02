@@ -19,7 +19,7 @@ const Songs = () => {
   </h3>
 
   <p className="text-gray-400 mt-3">
-    Original Telugu romantic melody written and composed by Harish Devireddy.
+    Original Telugu romantic melody written and composed by Harish Devireddy using AI.
   </p>
 
   <audio
