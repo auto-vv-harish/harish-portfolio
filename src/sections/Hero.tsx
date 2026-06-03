@@ -13,7 +13,7 @@ const Hero = () => {
 const [tapCount, setTapCount] = useState(0);
 const [showLogin, setShowLogin] = useState(false);
 
-const [isAdmin, setIsAdmin] = useState(
+const [isAdmin] = useState(
   localStorage.getItem("isAdmin") === "true"
 );
 
