@@ -6,63 +6,55 @@ const SongUploader = () => {
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
-  const handleUpload = async () => {
-    if (!file) {
-      alert("Select a song");
-      return;
-    }
+const handleUpload = async () => {
+  if (!file) {
+    alert("Select a song");
+    return;
+  }
 
-    const fileExtension = file.name.split(".").pop();
+  const fileExtension = file.name.split(".").pop();
+  const fileName = `${crypto.randomUUID()}.${fileExtension}`;
 
-const fileName =
-  `${crypto.randomUUID()}.${fileExtension}`;
+  // Upload file to storage
+  const { error: uploadError } = await supabase.storage
+    .from("songs")
+    .upload(fileName, file);
 
-    const { error: uploadError } = await supabase.storage
-      .from("songs")
-      .upload(fileName, file);
+  if (uploadError) {
+    console.log("Upload Error:", uploadError);
+    alert(uploadError.message);
+    return;
+  }
 
-    if (uploadError) {
-      alert(uploadError.message);
-      return;
-    }
+  // Get public URL
+  const { data } = supabase.storage
+    .from("songs")
+    .getPublicUrl(fileName);
 
-    const { data } = supabase.storage
-      .from("songs")
-      .getPublicUrl(fileName);
+  // Save song details in DB
+  const { error: insertError } = await supabase
+    .from("songs")
+    .insert([
+      {
+        title,
+        description,
+        audio_url: data.publicUrl,
+      },
+    ]);
 
-      const {
-  data: { user },
-} = await supabase.auth.getUser();
+  console.log("Insert Error:", insertError);
 
-console.log("Current User:", user);
+  if (insertError) {
+    alert(insertError.message);
+    return;
+  }
 
-console.log(user);  
+  alert("Song Uploaded Successfully");
 
-
-
-const { error: insertError } = await supabase
-  .from("songs")
-  .insert([
-    {
-      title,
-      description,
-      audio_url: data.publicUrl,
-    },
-  ]);
-
-console.log("Insert Error:", insertError);
-
-if (insertError) {
-  alert(insertError.message);
-  return;
-}
-
-    alert("Song Uploaded Successfully");
-
-    setTitle("");
-    setDescription("");
-    setFile(null);
-  };
+  setTitle("");
+  setDescription("");
+  setFile(null);
+};
 
   return (
     <div className="bg-gray-900 p-6 rounded-xl mt-4">
