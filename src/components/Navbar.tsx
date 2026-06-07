@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { FaBars, FaTimes } from "react-icons/fa";
 
 const Navbar = () => {
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isSongsPage = location.pathname === "/songs";
 
@@ -12,7 +15,8 @@ const Navbar = () => {
           Harish Devireddy
         </h1>
 
-        <div className="flex flex-wrap gap-4 text-white">
+        {/* Desktop Menu */}
+        <div className="hidden md:flex gap-8 text-white">
           {isSongsPage ? (
             <>
               <Link to="/" className="hover:text-cyan-400">
@@ -20,7 +24,7 @@ const Navbar = () => {
               </Link>
 
               <Link to="/songs" className="hover:text-cyan-400">
-                Songs
+                Beyond Work
               </Link>
             </>
           ) : (
@@ -42,6 +46,64 @@ const Navbar = () => {
               </a>
 
               <Link to="/songs" className="hover:text-cyan-400">
+                Beyond Work
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile Hamburger */}
+        <button
+          className="md:hidden text-white text-2xl"
+          onClick={() => setMenuOpen(true)}
+        >
+          <FaBars />
+        </button>
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div
+        className={`fixed top-0 right-0 h-full w-72 bg-[#0B1120] border-l border-cyan-500 transform transition-transform duration-300 ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="p-6 flex flex-col gap-6 text-white">
+          <button
+            className="self-end text-2xl"
+            onClick={() => setMenuOpen(false)}
+          >
+            <FaTimes />
+          </button>
+
+          {isSongsPage ? (
+            <>
+              <Link to="/" onClick={() => setMenuOpen(false)}>
+                Home
+              </Link>
+
+              <Link to="/songs" onClick={() => setMenuOpen(false)}>
+                Beyond Work
+              </Link>
+            </>
+          ) : (
+            <>
+              <a href="#about" onClick={() => setMenuOpen(false)}>
+                About
+              </a>
+
+              <a href="#skills" onClick={() => setMenuOpen(false)}>
+                Skills
+              </a>
+
+              <a href="#projects" onClick={() => setMenuOpen(false)}>
+                Projects
+              </a>
+
+              <a href="#contact" onClick={() => setMenuOpen(false)}>
+                Contact
+              </a>
+
+              <Link to="/songs" onClick={() => setMenuOpen(false)}>
                 Beyond Work
               </Link>
             </>
