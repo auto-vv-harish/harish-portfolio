@@ -126,7 +126,7 @@ const Navbar = () => {
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-72
+        className={`fixed top-0 right-0 z-50 h-full w-fit min-w-[220px]
         bg-gradient-to-b from-slate-900 via-cyan-950 to-slate-900
         border-l-2 border-cyan-400
         shadow-[0_0_30px_rgba(34,211,238,0.3)]
