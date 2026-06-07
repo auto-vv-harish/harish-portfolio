@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FaBars, FaTimes } from "react-icons/fa";
 
@@ -8,45 +8,70 @@ const Navbar = () => {
 
   const isSongsPage = location.pathname === "/songs";
 
+  // Close mobile menu automatically on desktop resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-black/30 border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <h1 className="text-cyan-400 font-bold text-2xl">
+        <h1 className="text-cyan-400 font-bold text-xl md:text-2xl">
           Harish Devireddy
         </h1>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex gap-8 text-white">
           {isSongsPage ? (
-            <>
-              <Link to="/" className="hover:text-cyan-400">
-                Home
-              </Link>
-
-              <Link to="/songs" className="hover:text-cyan-400">
-                Beyond Work
-              </Link>
-            </>
+            <Link
+              to="/"
+              className="hover:text-cyan-400 transition duration-300"
+            >
+              Home
+            </Link>
           ) : (
             <>
-              <a href="#about" className="hover:text-cyan-400">
+              <a
+                href="#about"
+                className="hover:text-cyan-400 transition duration-300"
+              >
                 About
               </a>
 
-              <a href="#skills" className="hover:text-cyan-400">
+              <a
+                href="#skills"
+                className="hover:text-cyan-400 transition duration-300"
+              >
                 Skills
               </a>
 
-              <a href="#projects" className="hover:text-cyan-400">
+              <a
+                href="#projects"
+                className="hover:text-cyan-400 transition duration-300"
+              >
                 Projects
               </a>
 
-              <a href="#contact" className="hover:text-cyan-400">
+              <a
+                href="#contact"
+                className="hover:text-cyan-400 transition duration-300"
+              >
                 Contact
               </a>
 
-              <Link to="/songs" className="hover:text-cyan-400">
-                Beyond Work
+              <Link
+                to="/songs"
+                className="hover:text-cyan-400 transition duration-300"
+              >
+                Passions
               </Link>
             </>
           )}
@@ -61,53 +86,98 @@ const Navbar = () => {
         </button>
       </div>
 
+      {/* Overlay */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 z-40"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
       {/* Mobile Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-[#0B1120] border-l border-cyan-500 transform transition-transform duration-300 ${
-          menuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 z-50 h-full w-72
+        bg-[#111827]
+        border-l-2 border-cyan-400
+        shadow-[0_0_30px_rgba(34,211,238,0.3)]
+        transform transition-transform duration-300 ease-in-out
+        md:hidden
+        ${menuOpen ? "translate-x-0" : "translate-x-full"}`}
       >
-        <div className="p-6 flex flex-col gap-6 text-white">
-          <button
-            className="self-end text-2xl"
-            onClick={() => setMenuOpen(false)}
-          >
-            <FaTimes />
-          </button>
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex justify-between items-center border-b border-gray-700 pb-4">
+            <div>
+              <h2 className="text-cyan-400 font-bold text-lg">
+                Harish Devireddy
+              </h2>
+              <p className="text-gray-400 text-sm">
+                Automotive Software Engineer
+              </p>
+            </div>
 
-          {isSongsPage ? (
-            <>
-              <Link to="/" onClick={() => setMenuOpen(false)}>
-                Home
+            <button
+              className="text-white text-xl hover:text-cyan-400"
+              onClick={() => setMenuOpen(false)}
+            >
+              <FaTimes />
+            </button>
+          </div>
+
+          {/* Menu */}
+          <div className="mt-8 flex flex-col gap-4">
+            {isSongsPage ? (
+              <Link
+                to="/"
+                onClick={() => setMenuOpen(false)}
+                className="px-4 py-3 rounded-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-all duration-300"
+              >
+                🏠 Home
               </Link>
+            ) : (
+              <>
+                <a
+                  href="#about"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-3 rounded-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-all duration-300"
+                >
+                  👤 About
+                </a>
 
-              <Link to="/songs" onClick={() => setMenuOpen(false)}>
-                Beyond Work
-              </Link>
-            </>
-          ) : (
-            <>
-              <a href="#about" onClick={() => setMenuOpen(false)}>
-                About
-              </a>
+                <a
+                  href="#skills"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-3 rounded-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-all duration-300"
+                >
+                  ⚡ Skills
+                </a>
 
-              <a href="#skills" onClick={() => setMenuOpen(false)}>
-                Skills
-              </a>
+                <a
+                  href="#projects"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-3 rounded-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-all duration-300"
+                >
+                  🚀 Projects
+                </a>
 
-              <a href="#projects" onClick={() => setMenuOpen(false)}>
-                Projects
-              </a>
+                <a
+                  href="#contact"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-3 rounded-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-all duration-300"
+                >
+                  📩 Contact
+                </a>
 
-              <a href="#contact" onClick={() => setMenuOpen(false)}>
-                Contact
-              </a>
-
-              <Link to="/songs" onClick={() => setMenuOpen(false)}>
-                Beyond Work
-              </Link>
-            </>
-          )}
+                <Link
+                  to="/songs"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-3 rounded-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-all duration-300"
+                >
+                  🎵 Passions
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>
