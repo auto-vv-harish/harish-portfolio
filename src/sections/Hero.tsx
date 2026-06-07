@@ -49,7 +49,7 @@ useEffect(() => {
   src={profilePic}
   alt="Harish Devireddy"
   onClick={handleSecretTap}
-  className="w-48 h-48 rounded-full mx-auto border-4 border-cyan-400 object-cover mb-6 cursor-pointer"
+  className="w-60 h-60 rounded-full mx-auto border-4 border-cyan-400 object-cover mb-6 cursor-pointer"
 />
 
         <h1 className="text-6xl md:text-8xl font-bold">
@@ -63,6 +63,8 @@ useEffect(() => {
         <div className="mt-6 text-xl md:text-3xl">
           <TypeAnimation
             sequence={[
+              "Electrical and Electronics Engineer",
+              2000,
               "Automotive Software Engineer",
               2000,
               "Embedded Systems Engineer",

@@ -6,7 +6,6 @@ import Projects from "./sections/Projects";
 import Achievements from "./sections/Achievements";
 import Contact from "./sections/Contact";
 import Footer from "./components/Footer";
-import Songs from "./components/Songs";
 
 function App() {
   return (
@@ -24,7 +23,7 @@ function App() {
 
       <Achievements />
 
-      <Songs />
+     
 
       <Contact />
 
