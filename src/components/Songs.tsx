@@ -39,6 +39,9 @@ useEffect(() => {
 
 const [editingSong, setEditingSong] =
   useState<Song | null>(null);
+const [editingCoverImage, setEditingCoverImage] =
+  useState<File | null>(null);
+const [isSavingSong, setIsSavingSong] = useState(false);
 
   useEffect(() => {
     songsRef.current = songs;
@@ -67,13 +70,38 @@ const [editingSong, setEditingSong] =
 const saveSong = async () => {
   if (!editingSong) return;
 
+  setIsSavingSong(true);
   console.log("Updating:", editingSong);
+
+  let coverImageUrl = editingSong.cover_image_url;
+
+  if (editingCoverImage) {
+    const imageName =
+      `${crypto.randomUUID()}.${editingCoverImage.name.split(".").pop()}`;
+
+    const { error: coverError } = await supabase.storage
+      .from("song-covers")
+      .upload(imageName, editingCoverImage);
+
+    if (coverError) {
+      setIsSavingSong(false);
+      alert(coverError.message);
+      return;
+    }
+
+    const { data: imageData } = supabase.storage
+      .from("song-covers")
+      .getPublicUrl(imageName);
+
+    coverImageUrl = imageData.publicUrl;
+  }
 
   const { data, error } = await supabase
     .from("songs")
     .update({
       title: editingSong.title,
       description: editingSong.description,
+      cover_image_url: coverImageUrl,
     })
     .eq("id", editingSong.id)
     .select();
@@ -82,12 +110,15 @@ const saveSong = async () => {
   console.log("Update Error:", error);
 
   if (error) {
+    setIsSavingSong(false);
     alert(error.message);
     return;
   }
 
   await fetchSongs();
   setEditingSong(null);
+  setEditingCoverImage(null);
+  setIsSavingSong(false);
 
   alert("Song Updated Successfully");
 };
@@ -381,7 +412,7 @@ const handleAudioEnded = async (endedSongId: number) => {
         className="w-full p-2 rounded bg-gray-800 mb-3"
       />
 
-     <textarea
+      <textarea
   value={editingSong.description}
   onChange={(e) => {
     console.log("New Description:", e.target.value);
@@ -394,16 +425,48 @@ const handleAudioEnded = async (endedSongId: number) => {
   className="w-full p-2 rounded bg-gray-800 mb-3"
 />
 
+      {editingSong.cover_image_url && (
+        <img
+          src={editingSong.cover_image_url}
+          alt={editingSong.title}
+          className="w-full h-40 object-cover rounded-lg mb-3"
+        />
+      )}
+
+      <label className="block text-gray-300 mb-2">
+        Cover Image
+      </label>
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) =>
+          setEditingCoverImage(e.target.files?.[0] || null)
+        }
+        className="w-full text-gray-300 mb-3"
+      />
+
+      {editingCoverImage && (
+        <p className="text-cyan-400 text-sm mb-3">
+          Selected: {editingCoverImage.name}
+        </p>
+      )}
+
       <div className="flex gap-2">
         <button
           onClick={saveSong}
+          disabled={isSavingSong}
           className="bg-green-600 px-4 py-2 rounded"
         >
-          Save
+          {isSavingSong ? "Saving..." : "Save"}
         </button>
 
         <button
-          onClick={() => setEditingSong(null)}
+          onClick={() => {
+            setEditingSong(null);
+            setEditingCoverImage(null);
+          }}
+          disabled={isSavingSong}
           className="bg-gray-600 px-4 py-2 rounded"
         >
           Cancel
