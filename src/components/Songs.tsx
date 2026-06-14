@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { FaHeart, FaPlay } from "react-icons/fa";
 
 interface Song {
   id: number;
@@ -7,6 +8,8 @@ interface Song {
   description: string;
   audio_url: string;
   cover_image_url: string;
+  play_count?: number;
+  likes?: number;
 }
 
 
@@ -15,17 +18,47 @@ const Songs = () => {
  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
  const shouldContinuePlayback = useRef(false);
  const isChangingTrack = useRef(false);
+ const countedPlaybackIds = useRef<Set<number>>(new Set());
+ const songsRef = useRef<Song[]>([]);
+ const hasShownMetricError = useRef(false);
  const [isAdmin, setIsAdmin] = useState(false);
+ const [likedSongIds, setLikedSongIds] = useState<number[]>([]);
 
 useEffect(() => {
   setIsAdmin(
     localStorage.getItem("isAdmin") === "true"
   );
+
+  const storedLikes = localStorage.getItem("likedSongIds");
+
+  if (storedLikes) {
+    setLikedSongIds(JSON.parse(storedLikes));
+  }
 }, []);
   const [songs, setSongs] = useState<Song[]>([]);
 
 const [editingSong, setEditingSong] =
   useState<Song | null>(null);
+
+  useEffect(() => {
+    songsRef.current = songs;
+  }, [songs]);
+
+  useEffect(() => {
+    if (songs.length === 0 || likedSongIds.length === 0) {
+      return;
+    }
+
+    const validLikedSongIds = likedSongIds.filter((songId) => {
+      const song = songs.find((currentSong) => currentSong.id === songId);
+      return !song || (song.likes || 0) > 0;
+    });
+
+    if (validLikedSongIds.length !== likedSongIds.length) {
+      setLikedSongIds(validLikedSongIds);
+      localStorage.setItem("likedSongIds", JSON.stringify(validLikedSongIds));
+    }
+  }, [songs, likedSongIds]);
 
   useEffect(() => {
     fetchSongs();
@@ -72,7 +105,14 @@ const saveSong = async () => {
       return;
     }
 
-    setSongs(data || []);
+    const normalizedSongs = (data || []).map((song) => ({
+      ...song,
+      play_count: song.play_count || 0,
+      likes: song.likes || 0,
+    }));
+
+    songsRef.current = normalizedSongs;
+    setSongs(normalizedSongs);
   };
 
 const handleDelete = async (
@@ -96,13 +136,95 @@ await fetchSongs();
 alert("Song Deleted Successfully");
 };
 
+const setSongMetric = (
+  songId: number,
+  field: "play_count" | "likes",
+  value: number
+) => {
+  setSongs((currentSongs) => {
+    const nextSongs = currentSongs.map((song) =>
+      song.id === songId
+        ? { ...song, [field]: value }
+        : song
+    );
+
+    songsRef.current = nextSongs;
+    return nextSongs;
+  });
+};
+
+const incrementSongMetric = async (
+  songId: number,
+  field: "play_count" | "likes"
+) => {
+  const song = songsRef.current.find((currentSong) => currentSong.id === songId);
+  const previousValue = song?.[field] || 0;
+  const fallbackValue = (song?.[field] || 0) + 1;
+
+  setSongMetric(songId, field, fallbackValue);
+
+  const functionName =
+    field === "play_count"
+      ? "increment_song_play_count_v2"
+      : "increment_song_likes_v2";
+
+  const { data, error } = await supabase
+    .rpc(functionName, { p_song_id: songId })
+    .single();
+
+  if (error || data === null) {
+    console.error(`Unable to persist ${field}:`, error);
+    setSongMetric(songId, field, previousValue);
+
+    if (!hasShownMetricError.current) {
+      hasShownMetricError.current = true;
+      alert(
+        `Unable to save song metrics in Supabase: ${
+          error?.message || "No data returned from the metric function."
+        }`
+      );
+    }
+
+    return false;
+  }
+
+  setSongMetric(songId, field, Number(data) || fallbackValue);
+  return true;
+};
+
+const incrementPlayCount = async (songId: number) => {
+  if (countedPlaybackIds.current.has(songId)) {
+    return;
+  }
+
+  countedPlaybackIds.current.add(songId);
+
+  await incrementSongMetric(songId, "play_count");
+};
+
+const handleLikeSong = async (songId: number) => {
+  if (likedSongIds.includes(songId)) {
+    return;
+  }
+
+  const isSaved = await incrementSongMetric(songId, "likes");
+
+  if (isSaved) {
+    const nextLikedSongIds = [...likedSongIds, songId];
+    setLikedSongIds(nextLikedSongIds);
+    localStorage.setItem("likedSongIds", JSON.stringify(nextLikedSongIds));
+  }
+};
+
 const handleAudioPlay = (playingSongId: number) => {
   shouldContinuePlayback.current = true;
+  incrementPlayCount(playingSongId);
 
   Object.entries(audioRefs.current).forEach(([songId, audio]) => {
     if (Number(songId) !== playingSongId && audio) {
       isChangingTrack.current = true;
       audio.pause();
+      countedPlaybackIds.current.delete(Number(songId));
       isChangingTrack.current = false;
     }
   });
@@ -113,10 +235,13 @@ const handleAudioPause = (pausedSongId: number) => {
 
   if (!isChangingTrack.current && audio && !audio.ended) {
     shouldContinuePlayback.current = false;
+    countedPlaybackIds.current.delete(pausedSongId);
   }
 };
 
 const handleAudioEnded = async (endedSongId: number) => {
+  countedPlaybackIds.current.delete(endedSongId);
+
   if (!shouldContinuePlayback.current || songs.length === 0) {
     return;
   }
@@ -180,6 +305,26 @@ const handleAudioEnded = async (endedSongId: number) => {
             <p className="text-gray-400 mt-3">
               {song.description}
             </p>
+
+            <div className="flex flex-wrap items-center gap-4 mt-5 text-sm text-gray-300">
+              <span className="inline-flex items-center gap-2">
+                <FaPlay className="text-cyan-400" />
+                {song.play_count || 0} Plays
+              </span>
+
+              <button
+                onClick={() => handleLikeSong(song.id)}
+                disabled={likedSongIds.includes(song.id)}
+                className={`inline-flex items-center gap-2 transition ${
+                  likedSongIds.includes(song.id)
+                    ? "text-pink-400 cursor-not-allowed"
+                    : "text-gray-300 hover:text-pink-400"
+                }`}
+              >
+                <FaHeart />
+                {song.likes || 0} Likes
+              </button>
+            </div>
 
             <audio
               ref={(audio) => {
