@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 interface Song {
@@ -12,6 +12,9 @@ interface Song {
 
 
 const Songs = () => {
+ const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
+ const shouldContinuePlayback = useRef(false);
+ const isChangingTrack = useRef(false);
  const [isAdmin, setIsAdmin] = useState(false);
 
 useEffect(() => {
@@ -93,6 +96,52 @@ await fetchSongs();
 alert("Song Deleted Successfully");
 };
 
+const handleAudioPlay = (playingSongId: number) => {
+  shouldContinuePlayback.current = true;
+
+  Object.entries(audioRefs.current).forEach(([songId, audio]) => {
+    if (Number(songId) !== playingSongId && audio) {
+      isChangingTrack.current = true;
+      audio.pause();
+      isChangingTrack.current = false;
+    }
+  });
+};
+
+const handleAudioPause = (pausedSongId: number) => {
+  const audio = audioRefs.current[pausedSongId];
+
+  if (!isChangingTrack.current && audio && !audio.ended) {
+    shouldContinuePlayback.current = false;
+  }
+};
+
+const handleAudioEnded = async (endedSongId: number) => {
+  if (!shouldContinuePlayback.current || songs.length === 0) {
+    return;
+  }
+
+  const currentIndex = songs.findIndex((song) => song.id === endedSongId);
+  const nextSong = songs[(currentIndex + 1) % songs.length];
+  const nextAudio = audioRefs.current[nextSong.id];
+
+  if (!nextAudio) {
+    return;
+  }
+
+  isChangingTrack.current = true;
+  nextAudio.currentTime = 0;
+
+  try {
+    await nextAudio.play();
+  } catch (error) {
+    shouldContinuePlayback.current = false;
+    console.error("Unable to continue playlist:", error);
+  } finally {
+    isChangingTrack.current = false;
+  }
+};
+
   return (
     <section
       id="music"
@@ -133,9 +182,15 @@ alert("Song Deleted Successfully");
             </p>
 
             <audio
+              ref={(audio) => {
+                audioRefs.current[song.id] = audio;
+              }}
               controls
               controlsList="nodownload"
               className="w-full mt-6"
+              onPlay={() => handleAudioPlay(song.id)}
+              onPause={() => handleAudioPause(song.id)}
+              onEnded={() => handleAudioEnded(song.id)}
             >
               <source
                 src={song.audio_url}
