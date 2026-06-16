@@ -46,6 +46,7 @@ end;
 $$;
 
 grant usage on schema public to anon, authenticated;
+grant select, update (play_count, likes) on public.songs to anon, authenticated;
 grant execute on function public.increment_song_play_count_v2(bigint) to anon, authenticated;
 grant execute on function public.increment_song_likes_v2(bigint) to anon, authenticated;
 

@@ -194,33 +194,47 @@ const incrementSongMetric = async (
 
   setSongMetric(songId, field, fallbackValue);
 
-  const functionName =
+  const functionNames =
     field === "play_count"
-      ? "increment_song_play_count_v2"
-      : "increment_song_likes_v2";
+      ? ["increment_song_play_count_v2", "increment_song_play_count"]
+      : ["increment_song_likes_v2", "increment_song_likes"];
 
-  const { data, error } = await supabase
-    .rpc(functionName, { p_song_id: songId })
-    .single();
+  let metricError: unknown = null;
 
-  if (error || data === null) {
-    console.error(`Unable to persist ${field}:`, error);
-    setSongMetric(songId, field, previousValue);
+  for (const functionName of functionNames) {
+    const { data, error } = await supabase
+      .rpc(functionName, { p_song_id: songId })
+      .single();
 
-    if (!hasShownMetricError.current) {
-      hasShownMetricError.current = true;
-      alert(
-        `Unable to save song metrics in Supabase: ${
-          error?.message || "No data returned from the metric function."
-        }`
-      );
+    if (!error && data !== null) {
+      setSongMetric(songId, field, Number(data) || fallbackValue);
+      return true;
     }
 
-    return false;
+    metricError = error;
   }
 
-  setSongMetric(songId, field, Number(data) || fallbackValue);
-  return true;
+  console.error(`Unable to persist ${field}:`, metricError);
+  setSongMetric(songId, field, previousValue);
+
+  if (!hasShownMetricError.current) {
+    hasShownMetricError.current = true;
+    const errorMessage =
+      metricError instanceof Error
+        ? metricError.message
+        : metricError &&
+          typeof metricError === "object" &&
+          "message" in metricError &&
+          typeof metricError.message === "string"
+        ? metricError.message
+        : "No data returned from the metric function.";
+
+    alert(
+      `Unable to save song metrics in Supabase: ${errorMessage}`
+    );
+  }
+
+  return false;
 };
 
 const incrementPlayCount = async (songId: number) => {
