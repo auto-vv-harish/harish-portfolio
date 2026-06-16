@@ -266,19 +266,24 @@ const handleAudioPause = (pausedSongId: number) => {
 
   if (!isChangingTrack.current && audio && !audio.ended) {
     shouldContinuePlayback.current = false;
-    countedPlaybackIds.current.delete(pausedSongId);
   }
 };
 
 const handleAudioEnded = async (endedSongId: number) => {
   countedPlaybackIds.current.delete(endedSongId);
+  const songList = songsRef.current;
 
-  if (!shouldContinuePlayback.current || songs.length === 0) {
+  if (!shouldContinuePlayback.current || songList.length === 0) {
     return;
   }
 
-  const currentIndex = songs.findIndex((song) => song.id === endedSongId);
-  const nextSong = songs[(currentIndex + 1) % songs.length];
+  const currentIndex = songList.findIndex((song) => song.id === endedSongId);
+
+  if (currentIndex === -1) {
+    return;
+  }
+
+  const nextSong = songList[(currentIndex + 1) % songList.length];
   const nextAudio = audioRefs.current[nextSong.id];
 
   if (!nextAudio) {
@@ -287,8 +292,10 @@ const handleAudioEnded = async (endedSongId: number) => {
 
   isChangingTrack.current = true;
   nextAudio.currentTime = 0;
+  nextAudio.load();
 
   try {
+    await new Promise((resolve) => requestAnimationFrame(resolve));
     await nextAudio.play();
   } catch (error) {
     shouldContinuePlayback.current = false;
